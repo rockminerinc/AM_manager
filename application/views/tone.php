@@ -41,7 +41,7 @@
 	</td>	
 	
 	<td  >
-	server
+	pool
 	</td>		
   	
 	<td  >
@@ -104,7 +104,7 @@ $id=1;
 	</td>
  
  	<td  >
-	<?= $row->server   ?> 
+	<?= $row->pool   ?> 
 	</td>	
 	
 	

@@ -123,7 +123,7 @@ class Home extends CI_Controller {
 		$this->data['page_num'] = isset($_GET['page'])?$_GET['page']:1; //页码
 		$page = !$this->pager->is_Page($this->data['page_num']) ? 1 : $this->data['page_num'];
  
-		$sql_sum="SELECT  COUNT(tid) as ip_num,SUM(hash) as hashavg, SUM(dev_num) as blades FROM t1miners where 1 ";
+		$sql_sum="SELECT  COUNT(tid) as ip_num,SUM(hash) as hashavg, SUM(dev_num) as blades  FROM t1miners where 1 ";
 		$this->data['hash_sum'] = $this->db->query($sql_sum)->row();
 		//var_dump($this->data['hash_sums']);
 		$this->data['rows_num'] = $this->data['hash_sum']->ip_num;
@@ -159,7 +159,7 @@ class Home extends CI_Controller {
 		
 		$this->pager->init($this->data);		
 		$this->data['page_links']=$this->pager->create_links();	 
-		$sql="SELECT tid,ip_address,ipint,hash,dev_num,event_time,server,efi,hws FROM t1miners  WHERE 1  ".$condition." ".$limits;
+		$sql="SELECT tid,ip_address,ipint,hash,dev_num,event_time,server,efi,hws,pool FROM t1miners  WHERE 1  ".$condition." ".$limits;
 		//var_dump($sql);
 		$this->data['datas'] = $this->db->query($sql)->result();
 		$this->data['title']= 'summary';
@@ -196,6 +196,10 @@ class Home extends CI_Controller {
 	public function grapData()
 	{
 		//结合cron定时抓取数据
+		$gid = $this->input->get('gid');
+		if($gid)
+		$sql="select rack,start,end from groups where gid=".$gid;
+			else
 		$sql="select rack,start,end from groups where 1";
 
 		$result = $this->db->query($sql)->result();
@@ -228,8 +232,10 @@ class Home extends CI_Controller {
 					$t1_data['hash'] = $hashdatas[$ip]['hash'];
 					$t1_data['hws'] = $hashdatas[$ip]['hws'];
 					$t1_data['efi'] = $hashdatas[$ip]['efi'];
+					$t1_data['pool'] = $hashdatas[$ip]['pool'];
 					//if($save)
 					 echo $ip;
+
 					$this->insertData($t1_data);
 					 
 				}
@@ -349,14 +355,31 @@ function object_array($array) {
     		
     	}
 
- 
+
+		$url_pool = $url.'/Settings/';
+		$pool_data=@$this->geturl($url_pool);//($url);
+ 		$reg_pool= '/<input name=MURL value=\'(.*?)\' size=42 type=text>/';
+		preg_match($reg_pool, $pool_data, $arr_pool);
+ 	    $pool = $arr_pool[1];
+ 	    $data['pool']=$pool;
+
+
     	return $data;
-
-
 
 	}
 
 
+	function getPool()
+	{
+		$url = "http://192.168.50.1:8000/";
+		$url_pool = $url.'/Settings/';
+		//$htmDoc=@file_get_contents($url_statistics, 0, $ctx);//($url);
+		$pool_data=@$this->geturl($url_pool);//($url);
+ 		$reg_pool= '/<input name=MURL value=\'(.*?)\' size=42 type=text>/';
+		preg_match($reg_pool, $pool_data, $arr_pool);
+ 	    $pool = $arr_pool[1];
+ 
+	}
 
 	function getSubstr($str, $leftStr, $rightStr)
 	{
@@ -660,6 +683,7 @@ function object_array($array) {
 									  'efi' 			=> $data['efi'] ,
 									  'hws' 			=> $data['hws'] ,
 									  'event_time' 		=> $data['time'],
+									  'pool' 		=> $data['pool'],
 		 
 									  );
 						$this->db->where('tid', $result->row()->tid);
@@ -684,6 +708,7 @@ function object_array($array) {
 									  'efi' 			=> $data['efi'] ,
 									  'hws' 			=> $data['hws'] ,
 									  'event_time' 			=> $data['time'],
+									  'pool' 			=> $data['pool'],
 		 							  );
 
 						$this->db->insert('t1miners', $data2);
@@ -988,7 +1013,9 @@ iface eth0 inet static\n";
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+	//curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_NOSIGNAL, 1);    //注意，毫秒超时一定要设置这个
+    curl_setopt($ch, CURLOPT_TIMEOUT_MS, 500); 	
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1); 
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);

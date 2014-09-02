@@ -50,8 +50,8 @@ $active_record = TRUE;
 
 $db['default']['hostname'] = 'localhost';
 $db['default']['username'] = 'root';
-$db['default']['password'] = 'rockminer';
-$db['default']['database'] = 'rockmonitor';
+$db['default']['password'] = 'rockrock';
+$db['default']['database'] = 'am_manager';
 $db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;
